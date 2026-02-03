@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulado com Banco de Dados</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<header class="bg-blue-600 text-white p-4 flex justify-between">
+  <h1 class="font-bold text-xl">📘 Simulado Online</h1>
+  <div class="space-x-3">
+    <button onclick="home()">Início</button>
+    <button onclick="cadastro()">Cadastrar</button>
+    <button onclick="simulado()">Simulado</button>
+  </div>
+</header>
+
+<!-- HOME -->
+<section id="home" class="h-[80vh] flex items-center justify-center bg-cover"
+style="background-image:url('https://images.unsplash.com/photo-1523240795612-9a054b0db644');">
+
+<div class="bg-black/60 text-white p-8 rounded-xl text-center">
+  <h2 class="text-3xl font-bold mb-3">Sistema de Simulados</h2>
+  <p class="mb-4">Com banco de dados online</p>
+  <button onclick="simulado()" class="bg-blue-500 px-5 py-2 rounded">Começar</button>
+</div>
+
+</section>
+
+<!-- CADASTRO -->
+<section id="cadastro" class="hidden max-w-3xl mx-auto p-6">
+
+<h2 class="text-2xl font-bold mb-4">Cadastrar Questão</h2>
+
+<div class="bg-white p-6 rounded-xl shadow space-y-3">
+
+<textarea id="pergunta" class="w-full border p-2 rounded" placeholder="Pergunta"></textarea>
+<input id="imagem" class="w-full border p-2 rounded" placeholder="Link da imagem">
+<input id="a" class="w-full border p-2 rounded" placeholder="Opção A">
+<input id="b" class="w-full border p-2 rounded" placeholder="Opção B">
+<input id="c" class="w-full border p-2 rounded" placeholder="Opção C">
+<input id="d" class="w-full border p-2 rounded" placeholder="Opção D">
+
+<select id="correta" class="w-full border p-2 rounded">
+  <option>A</option>
+  <option>B</option>
+  <option>C</option>
+  <option>D</option>
+</select>
+
+<button onclick="salvar()" class="bg-green-500 text-white w-full py-2 rounded">Salvar</button>
+
+</div>
+</section>
+
+<!-- SIMULADO -->
+<section id="simulado" class="hidden max-w-3xl mx-auto p-6">
+<h2 class="text-2xl font-bold mb-4">Simulado</h2>
+<div id="questao" class="bg-white p-6 rounded-xl shadow"></div>
+</section>
+
+<footer class="bg-gray-800 text-white text-center p-3">
+© 2026 - Simulado
+</footer>
+
+<script>
+
+/************************ FIREBASE CONFIG ************************/
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBzrrvInMw45pNN3P-5_IpAK6IrKZNXEG4",
+  authDomain: "simulado-a0d70.firebaseapp.com",
+  projectId: "simulado-a0d70",
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+/************************ VARIÁVEIS ************************/
+
+let questoes = []
+let atual = 0
+let pontos = 0
+
+/************************ NAVEGAÇÃO ************************/
+
+function esconder(){
+  homeDiv().classList.add('hidden')
+  cadastroDiv().classList.add('hidden')
+  simuladoDiv().classList.add('hidden')
+}
+
+function home(){
+  esconder()
+  homeDiv().classList.remove('hidden')
+}
+
+function cadastro(){
+  esconder()
+  cadastroDiv().classList.remove('hidden')
+}
+
+function simulado(){
+  esconder()
+  simuladoDiv().classList.remove('hidden')
+  carregarQuestoes()
+}
+
+function homeDiv(){return document.getElementById('home')}
+function cadastroDiv(){return document.getElementById('cadastro')}
+function simuladoDiv(){return document.getElementById('simulado')}
+
+/************************ SALVAR ************************/
+
+function salvar(){
+
+  const pergunta = document.getElementById('pergunta').value
+  const imagem = document.getElementById('imagem').value
+  const a = document.getElementById('a').value
+  const b = document.getElementById('b').value
+  const c = document.getElementById('c').value
+  const d = document.getElementById('d').value
+  const correta = document.getElementById('correta').value
+
+  if(!pergunta || !a || !b || !c || !d){
+    alert('Preencha tudo!')
+    return
+  }
+
+  db.collection('questoes').add({
+    pergunta, imagem, a, b, c, d, correta
+  })
+
+  .then(()=>{
+    alert('Salvo no banco!')
+    limpar()
+  })
+}
+
+function limpar(){
+  document.querySelectorAll('input, textarea').forEach(e=>e.value='')
+}
+
+/************************ CARREGAR ************************/
+
+function carregarQuestoes(){
+
+  db.collection('questoes').get()
+  .then(snapshot=>{
+
+    questoes = []
+
+    snapshot.forEach(doc=>{
+      questoes.push(doc.data())
+    })
+
+    atual = 0
+    pontos = 0
+    mostrar()
+
+  })
+}
+
+/************************ SIMULADO ************************/
+
+function mostrar(){
+
+  if(atual >= questoes.length){
+    resultado()
+    return
+  }
+
+  const q = questoes[atual]
+
+  let img = ''
+  if(q.imagem){
+    img = `<img src="${q.imagem}" class="mx-auto max-h-52 my-3 rounded">`
+  }
+
+  document.getElementById('questao').innerHTML = `
+
+  <h3 class="font-bold text-lg mb-3">${atual+1}. ${q.pergunta}</h3>
+  ${img}
+
+  <div class="space-y-2">
+    <button onclick="responder('A')" class="btn">A) ${q.a}</button>
+    <button onclick="responder('B')" class="btn">B) ${q.b}</button>
+    <button onclick="responder('C')" class="btn">C) ${q.c}</button>
+    <button onclick="responder('D')" class="btn">D) ${q.d}</button>
+  </div>
+
+  `
+
+  document.querySelectorAll('.btn').forEach(b=>{
+    b.className='btn w-full border p-2 rounded hover:bg-blue-100 text-left'
+  })
+}
+
+function responder(r){
+
+  if(r === questoes[atual].correta){
+    pontos++
+  }
+
+  atual++
+  mostrar()
+}
+
+function resultado(){
+
+  document.getElementById('questao').innerHTML = `
+
+  <div class="text-center">
+    <h3 class="text-xl font-bold mb-3">Resultado</h3>
+    <p>Acertos: ${pontos} / ${questoes.length}</p>
+
+    <button onclick="simulado()" class="bg-blue-500 text-white px-4 py-2 mt-4 rounded">
+      Refazer
+    </button>
+  </div>
+
+  `
+}
+
+home()
+
+</script>
+
+</body>
+</html>
