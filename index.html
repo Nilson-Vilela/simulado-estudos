@@ -12,12 +12,14 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-gray-100 min-h-screen">
 
+
+
+<body class="bg-gray-100 min-h-screen">
 
 <!-- HOME -->
 <section id="home"
-class="min-h-screen flex items-center justify-center bg-cover bg-center"
+class="min-h-screen flex items-center justify-center bg-cover bg-center hidden"
 style="background-image:url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1600&q=80');">
 
   <div class="bg-black/60 text-white p-8 rounded-xl text-center max-w-md">
@@ -39,10 +41,10 @@ style="background-image:url('https://images.unsplash.com/photo-1523240795612-9a0
 
 </section>
 
-
 <!-- LOGIN -->
 <section id="login" class="hidden flex items-center justify-center min-h-screen">
 <div class="bg-white p-6 rounded-xl shadow w-full max-w-md">
+
 <h2 class="text-2xl font-bold text-center mb-4">Login</h2>
 
 <input id="email" class="w-full border p-2 mb-2 rounded" placeholder="Email">
@@ -54,11 +56,13 @@ style="background-image:url('https://images.unsplash.com/photo-1523240795612-9a0
 <p class="text-center mt-3 text-sm">
 <a href="#" onclick="registrar()" class="text-blue-600">Criar conta</a>
 </p>
+
 </div>
 </section>
 
 <!-- ALUNO -->
 <section id="aluno" class="hidden p-4 max-w-3xl mx-auto">
+
 <h2 class="text-2xl font-bold mb-4">Área do Aluno</h2>
 
 <div class="space-y-3">
@@ -69,14 +73,14 @@ style="background-image:url('https://images.unsplash.com/photo-1523240795612-9a0
 </div>
 
 <div id="conteudoAluno" class="mt-5"></div>
+
 </section>
 
-<!-- PROFESSOR -->
+<!-- ADMIN -->
 <section id="admin" class="hidden p-4 max-w-4xl mx-auto">
+
 <h2 class="text-2xl font-bold mb-4">Painel do Professor</h2>
 
-
-<!-- FORMULÁRIO -->
 <div class="bg-white p-4 rounded-xl shadow mb-4 space-y-2">
 
 <input id="perg" class="w-full border p-2 rounded" placeholder="Pergunta">
@@ -87,10 +91,10 @@ style="background-image:url('https://images.unsplash.com/photo-1523240795612-9a0
 <input id="opD" class="w-full border p-2 rounded" placeholder="Alternativa D">
 
 <select id="resp" class="w-full border p-2 rounded">
-  <option>A</option>
-  <option>B</option>
-  <option>C</option>
-  <option>D</option>
+<option>A</option>
+<option>B</option>
+<option>C</option>
+<option>D</option>
 </select>
 
 <button onclick="salvarQuestao()"
@@ -100,12 +104,10 @@ Salvar Questão
 
 </div>
 
-
-
-
 <button onclick="logout()" class="btn bg-red-500 text-white mb-3">Sair</button>
 
 <div id="listaQuestoes"></div>
+
 </section>
 
 <script>
@@ -152,7 +154,7 @@ function logout(){
 
 auth.onAuthStateChanged(user=>{
 
- if(!user){
+if(!user){
   mostrar('home');
   return;
 }
