@@ -1,78 +1,63 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulado com Banco de Dados</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma de Simulado</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-<header class="bg-blue-600 text-white p-4 flex justify-between">
-  <h1 class="font-bold text-xl">📘 Simulado Online</h1>
-  <div class="space-x-3">
-    <button onclick="home()">Início</button>
-    <button onclick="cadastro()">Cadastrar</button>
-    <button onclick="simulado()">Simulado</button>
-  </div>
-</header>
+<!-- LOGIN -->
+<section id="login" class="flex items-center justify-center min-h-screen">
+<div class="bg-white p-6 rounded-xl shadow w-full max-w-md">
+<h2 class="text-2xl font-bold text-center mb-4">Login</h2>
 
-<!-- HOME -->
-<section id="home" class="h-[80vh] flex items-center justify-center bg-cover"
-style="background-image:url('https://images.unsplash.com/photo-1523240795612-9a054b0db644');">
+<input id="email" class="w-full border p-2 mb-2 rounded" placeholder="Email">
+<input id="senha" type="password" class="w-full border p-2 mb-3 rounded" placeholder="Senha">
 
-<div class="bg-black/60 text-white p-8 rounded-xl text-center">
-  <h2 class="text-3xl font-bold mb-3">Sistema de Simulados</h2>
-  <p class="mb-4">Com banco de dados online</p>
-  <button onclick="simulado()" class="bg-blue-500 px-5 py-2 rounded">Começar</button>
-</div>
+<button onclick="loginEmail()" class="bg-blue-500 w-full py-2 text-white rounded mb-2">Entrar</button>
+<button onclick="loginGoogle()" class="bg-red-500 w-full py-2 text-white rounded">Google</button>
 
-</section>
-
-<!-- CADASTRO -->
-<section id="cadastro" class="hidden max-w-3xl mx-auto p-6">
-
-<h2 class="text-2xl font-bold mb-4">Cadastrar Questão</h2>
-
-<div class="bg-white p-6 rounded-xl shadow space-y-3">
-
-<textarea id="pergunta" class="w-full border p-2 rounded" placeholder="Pergunta"></textarea>
-<input id="imagem" class="w-full border p-2 rounded" placeholder="Link da imagem">
-<input id="a" class="w-full border p-2 rounded" placeholder="Opção A">
-<input id="b" class="w-full border p-2 rounded" placeholder="Opção B">
-<input id="c" class="w-full border p-2 rounded" placeholder="Opção C">
-<input id="d" class="w-full border p-2 rounded" placeholder="Opção D">
-
-<select id="correta" class="w-full border p-2 rounded">
-  <option>A</option>
-  <option>B</option>
-  <option>C</option>
-  <option>D</option>
-</select>
-
-<button onclick="salvar()" class="bg-green-500 text-white w-full py-2 rounded">Salvar</button>
-
+<p class="text-center mt-3 text-sm">
+<a href="#" onclick="registrar()" class="text-blue-600">Criar conta</a>
+</p>
 </div>
 </section>
 
-<!-- SIMULADO -->
-<section id="simulado" class="hidden max-w-3xl mx-auto p-6">
-<h2 class="text-2xl font-bold mb-4">Simulado</h2>
-<div id="questao" class="bg-white p-6 rounded-xl shadow"></div>
+<!-- ALUNO -->
+<section id="aluno" class="hidden p-4 max-w-3xl mx-auto">
+<h2 class="text-2xl font-bold mb-4">Área do Aluno</h2>
+
+<div class="space-y-3">
+<button onclick="iniciarSimulado()" class="btn">📘 Fazer Simulado</button>
+<button onclick="historico()" class="btn">📊 Histórico</button>
+<button onclick="ranking()" class="btn">🏆 Ranking</button>
+<button onclick="logout()" class="btn bg-red-500 text-white">Sair</button>
+</div>
+
+<div id="conteudoAluno" class="mt-5"></div>
 </section>
 
-<footer class="bg-gray-800 text-white text-center p-3">
-© 2026 - Simulado
-</footer>
+<!-- PROFESSOR -->
+<section id="admin" class="hidden p-4 max-w-4xl mx-auto">
+<h2 class="text-2xl font-bold mb-4">Painel do Professor</h2>
+
+<button onclick="novaQuestao()" class="btn bg-green-500 text-white mb-3">+ Nova Questão</button>
+<button onclick="logout()" class="btn bg-red-500 text-white mb-3">Sair</button>
+
+<div id="listaQuestoes"></div>
+</section>
 
 <script>
 
-/************************ FIREBASE CONFIG ************************/
+/**************** FIREBASE ****************/
 
 const firebaseConfig = {
   apiKey: "AIzaSyBzrrvInMw45pNN3P-5_IpAK6IrKZNXEG4",
@@ -82,157 +67,249 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
+const auth = firebase.auth();
 const db = firebase.firestore();
 
-/************************ VARIÁVEIS ************************/
+const EMAIL_PROF = "nilsonsvilela@gmail.com";
 
-let questoes = []
-let atual = 0
-let pontos = 0
+/**************** AUTH ****************/
 
-/************************ NAVEGAÇÃO ************************/
-
-function esconder(){
-  homeDiv().classList.add('hidden')
-  cadastroDiv().classList.add('hidden')
-  simuladoDiv().classList.add('hidden')
+function loginEmail(){
+  auth.signInWithEmailAndPassword(
+    email.value,
+    senha.value
+  ).catch(e=>alert(e.message));
 }
 
-function home(){
-  esconder()
-  homeDiv().classList.remove('hidden')
+function registrar(){
+  auth.createUserWithEmailAndPassword(
+    email.value,
+    senha.value
+  ).catch(e=>alert(e.message));
 }
 
-function cadastro(){
-  esconder()
-  cadastroDiv().classList.remove('hidden')
+function loginGoogle(){
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider);
 }
 
-function simulado(){
-  esconder()
-  simuladoDiv().classList.remove('hidden')
-  carregarQuestoes()
+function logout(){
+  auth.signOut();
 }
 
-function homeDiv(){return document.getElementById('home')}
-function cadastroDiv(){return document.getElementById('cadastro')}
-function simuladoDiv(){return document.getElementById('simulado')}
+auth.onAuthStateChanged(user=>{
 
-/************************ SALVAR ************************/
-
-function salvar(){
-
-  const pergunta = document.getElementById('pergunta').value
-  const imagem = document.getElementById('imagem').value
-  const a = document.getElementById('a').value
-  const b = document.getElementById('b').value
-  const c = document.getElementById('c').value
-  const d = document.getElementById('d').value
-  const correta = document.getElementById('correta').value
-
-  if(!pergunta || !a || !b || !c || !d){
-    alert('Preencha tudo!')
-    return
+  if(!user){
+    mostrar('login');
+    return;
   }
 
+  if(user.email === EMAIL_PROF){
+    mostrar('admin');
+    carregarQuestoes();
+  }else{
+    mostrar('aluno');
+  }
+
+});
+
+/**************** UI ****************/
+
+function mostrar(id){
+  ['login','aluno','admin'].forEach(s=>{
+    document.getElementById(s).classList.add('hidden');
+  });
+
+  document.getElementById(id).classList.remove('hidden');
+}
+
+/**************** PROFESSOR ****************/
+
+function novaQuestao(){
+
+  const p = prompt('Pergunta:');
+  if(!p) return;
+
+  const a = prompt('A:');
+  const b = prompt('B:');
+  const c = prompt('C:');
+  const d = prompt('D:');
+  const r = prompt('Correta (A/B/C/D):');
+
   db.collection('questoes').add({
-    pergunta, imagem, a, b, c, d, correta
-  })
+    pergunta:p,a,b,c,d,correta:r
+  });
 
-  .then(()=>{
-    alert('Salvo no banco!')
-    limpar()
-  })
 }
-
-function limpar(){
-  document.querySelectorAll('input, textarea').forEach(e=>e.value='')
-}
-
-/************************ CARREGAR ************************/
 
 function carregarQuestoes(){
 
-  db.collection('questoes').get()
-  .then(snapshot=>{
+  db.collection('questoes').onSnapshot(snap=>{
 
-    questoes = []
+    let html='';
 
-    snapshot.forEach(doc=>{
-      questoes.push(doc.data())
-    })
+    snap.forEach(doc=>{
 
-    atual = 0
-    pontos = 0
-    mostrar()
+      const q=doc.data();
 
-  })
+      html+=`
+      <div class="bg-white p-3 rounded shadow mb-2">
+        <p><b>${q.pergunta}</b></p>
+        <p>A) ${q.a}</p>
+        <p>B) ${q.b}</p>
+        <p>C) ${q.c}</p>
+        <p>D) ${q.d}</p>
+        <p>✔ ${q.correta}</p>
+
+        <div class="space-x-2 mt-2">
+          <button onclick="editar('${doc.id}')" class="btn">✏️ Editar</button>
+          <button onclick="excluir('${doc.id}')" class="btn bg-red-500 text-white">🗑 Excluir</button>
+        </div>
+      </div>`;
+
+    });
+
+    listaQuestoes.innerHTML=html;
+  });
 }
 
-/************************ SIMULADO ************************/
+function excluir(id){
+  if(confirm('Excluir?')){
+    db.collection('questoes').doc(id).delete();
+  }
+}
 
-function mostrar(){
+function editar(id){
 
-  if(atual >= questoes.length){
-    resultado()
-    return
+  db.collection('questoes').doc(id).get().then(d=>{
+
+    const q=d.data();
+
+    const p=prompt('Pergunta',q.pergunta);
+    const a=prompt('A',q.a);
+    const b=prompt('B',q.b);
+    const c=prompt('C',q.c);
+    const d1=prompt('D',q.d);
+    const r=prompt('Correta',q.correta);
+
+    db.collection('questoes').doc(id).update({
+      pergunta:p,a,b,c,d:d1,correta:r
+    });
+  });
+}
+
+/**************** ALUNO ****************/
+
+let questoes=[];
+let atual=0;
+let pontos=0;
+
+function iniciarSimulado(){
+
+  db.collection('questoes').get().then(s=>{
+
+    questoes=[];
+
+    s.forEach(d=>questoes.push(d.data()));
+
+    atual=0;
+    pontos=0;
+
+    mostrarQuestao();
+  });
+}
+
+function mostrarQuestao(){
+
+  if(atual>=questoes.length){
+    salvarHistorico();
+    conteudoAluno.innerHTML=`<h3 class='text-xl'>Resultado: ${pontos}/${questoes.length}</h3>`;
+    return;
   }
 
-  const q = questoes[atual]
+  const q=questoes[atual];
 
-  let img = ''
-  if(q.imagem){
-    img = `<img src="${q.imagem}" class="mx-auto max-h-52 my-3 rounded">`
-  }
+  conteudoAluno.innerHTML=`
+  <div class="bg-white p-4 rounded shadow">
+    <h3 class="font-bold mb-2">${q.pergunta}</h3>
 
-  document.getElementById('questao').innerHTML = `
-
-  <h3 class="font-bold text-lg mb-3">${atual+1}. ${q.pergunta}</h3>
-  ${img}
-
-  <div class="space-y-2">
-    <button onclick="responder('A')" class="btn">A) ${q.a}</button>
-    <button onclick="responder('B')" class="btn">B) ${q.b}</button>
-    <button onclick="responder('C')" class="btn">C) ${q.c}</button>
-    <button onclick="responder('D')" class="btn">D) ${q.d}</button>
-  </div>
-
-  `
-
-  document.querySelectorAll('.btn').forEach(b=>{
-    b.className='btn w-full border p-2 rounded hover:bg-blue-100 text-left'
-  })
+    <button class="btn" onclick="resp('A')">A) ${q.a}</button>
+    <button class="btn" onclick="resp('B')">B) ${q.b}</button>
+    <button class="btn" onclick="resp('C')">C) ${q.c}</button>
+    <button class="btn" onclick="resp('D')">D) ${q.d}</button>
+  </div>`;
 }
 
-function responder(r){
+function resp(r){
 
-  if(r === questoes[atual].correta){
-    pontos++
-  }
+  if(r===questoes[atual].correta) pontos++;
 
-  atual++
-  mostrar()
+  atual++;
+  mostrarQuestao();
 }
 
-function resultado(){
+function salvarHistorico(){
 
-  document.getElementById('questao').innerHTML = `
+  const user=auth.currentUser;
 
-  <div class="text-center">
-    <h3 class="text-xl font-bold mb-3">Resultado</h3>
-    <p>Acertos: ${pontos} / ${questoes.length}</p>
-
-    <button onclick="simulado()" class="bg-blue-500 text-white px-4 py-2 mt-4 rounded">
-      Refazer
-    </button>
-  </div>
-
-  `
+  db.collection('historico').add({
+    aluno:user.email,
+    pontos,
+    total:questoes.length,
+    data:new Date()
+  });
 }
 
-home()
+function historico(){
+
+  const user=auth.currentUser;
+
+  db.collection('historico')
+  .where('aluno','==',user.email)
+  .get()
+  .then(s=>{
+
+    let h='<h3 class="font-bold mb-2">Histórico</h3>';
+
+    s.forEach(d=>{
+      const r=d.data();
+      h+=`<p>${r.pontos}/${r.total}</p>`;
+    });
+
+    conteudoAluno.innerHTML=h;
+  });
+}
+
+function ranking(){
+
+  db.collection('historico')
+  .orderBy('pontos','desc')
+  .limit(10)
+  .get()
+  .then(s=>{
+
+    let r='<h3 class="font-bold mb-2">Ranking</h3>';
+
+    s.forEach(d=>{
+      const x=d.data();
+      r+=`<p>${x.aluno} - ${x.pontos}</p>`;
+    });
+
+    conteudoAluno.innerHTML=r;
+  });
+}
 
 </script>
+
+<style>
+.btn{
+  width:100%;
+  border:1px solid #ccc;
+  padding:8px;
+  border-radius:8px;
+  margin-bottom:6px;
+}
+</style>
 
 </body>
 </html>
