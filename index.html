@@ -14,6 +14,24 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
 
+<!-- HOME -->
+<section id="home" class="flex items-center justify-center min-h-screen bg-blue-900 text-white">
+
+  <div class="text-center p-6">
+    <h1 class="text-4xl font-bold mb-4">📘 Simulado Online</h1>
+
+    <p class="mb-6 text-lg">
+      Estude e se prepare para suas provas
+    </p>
+
+    <button onclick="mostrar('login')"
+      class="bg-white text-blue-900 px-6 py-3 rounded-xl font-bold">
+      Entrar
+    </button>
+  </div>
+
+</section>
+
 <!-- LOGIN -->
 <section id="login" class="flex items-center justify-center min-h-screen">
 <div class="bg-white p-6 rounded-xl shadow w-full max-w-md">
@@ -49,7 +67,34 @@
 <section id="admin" class="hidden p-4 max-w-4xl mx-auto">
 <h2 class="text-2xl font-bold mb-4">Painel do Professor</h2>
 
-<button onclick="novaQuestao()" class="btn bg-green-500 text-white mb-3">+ Nova Questão</button>
+
+<!-- FORMULÁRIO -->
+<div class="bg-white p-4 rounded-xl shadow mb-4 space-y-2">
+
+<input id="perg" class="w-full border p-2 rounded" placeholder="Pergunta">
+
+<input id="opA" class="w-full border p-2 rounded" placeholder="Alternativa A">
+<input id="opB" class="w-full border p-2 rounded" placeholder="Alternativa B">
+<input id="opC" class="w-full border p-2 rounded" placeholder="Alternativa C">
+<input id="opD" class="w-full border p-2 rounded" placeholder="Alternativa D">
+
+<select id="resp" class="w-full border p-2 rounded">
+  <option>A</option>
+  <option>B</option>
+  <option>C</option>
+  <option>D</option>
+</select>
+
+<button onclick="salvarQuestao()"
+class="bg-green-500 text-white w-full py-2 rounded">
+Salvar Questão
+</button>
+
+</div>
+
+
+
+
 <button onclick="logout()" class="btn bg-red-500 text-white mb-3">Sair</button>
 
 <div id="listaQuestoes"></div>
@@ -99,10 +144,11 @@ function logout(){
 
 auth.onAuthStateChanged(user=>{
 
-  if(!user){
-    mostrar('login');
-    return;
-  }
+ if(!user){
+  mostrar('home');
+  return;
+}
+
 
   if(user.email === EMAIL_PROF){
     mostrar('admin');
@@ -124,6 +170,32 @@ function mostrar(id){
 }
 
 /**************** PROFESSOR ****************/
+function salvarQuestao(){
+
+  if(!perg.value || !opA.value || !opB.value ||
+     !opC.value || !opD.value){
+    alert("Preencha tudo");
+    return;
+  }
+
+  db.collection('questoes').add({
+
+    pergunta: perg.value,
+    a: opA.value,
+    b: opB.value,
+    c: opC.value,
+    d: opD.value,
+    correta: resp.value
+
+  });
+
+  perg.value="";
+  opA.value="";
+  opB.value="";
+  opC.value="";
+  opD.value="";
+}
+
 
 function novaQuestao(){
 
