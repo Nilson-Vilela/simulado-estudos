@@ -32,7 +32,7 @@ style="background-image:url('https://images.unsplash.com/photo-1523240795612-9a0
       Estude e se prepare para suas provas
     </p>
 
-    <button onclick="mostrar('login')"
+    <button onclick="abrirLogin()"
     class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-xl font-bold">
       Entrar
     </button>
@@ -128,12 +128,24 @@ const db = firebase.firestore();
 const EMAIL_PROF = "nilsonsvilela@gmail.com";
 
 /**************** AUTH ****************/
-
 function loginEmail(){
   auth.signInWithEmailAndPassword(
     email.value,
     senha.value
-  ).catch(e=>alert(e.message));
+  ).then(() => {
+    // Depois de logar com sucesso, decide o destino:
+    if(usuarioAtual.email === EMAIL_PROF){
+      mostrar('admin');
+      carregarQuestoes();
+    } else {
+      mostrar('aluno');
+    }
+  }).catch(e => alert(e.message));
+}
+
+
+function abrirLogin(){
+  mostrar('login');
 }
 
 function registrar(){
@@ -145,29 +157,31 @@ function registrar(){
 
 function loginGoogle(){
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider);
+  auth.signInWithPopup(provider)
+    .then(()=> {
+      if(usuarioAtual.email === EMAIL_PROF){
+        mostrar('admin');
+        carregarQuestoes();
+      } else {
+        mostrar('aluno');
+      }
+    })
+    .catch(e => alert(e.message));
 }
 
 function logout(){
   auth.signOut();
 }
 
-auth.onAuthStateChanged(user=>{
+let usuarioAtual = null;
 
-if(!user){
-  mostrar('home');
-  return;
-}
-
-
-  if(user.email === EMAIL_PROF){
-    mostrar('admin');
-    carregarQuestoes();
-  }else{
-    mostrar('aluno');
-  }
-
+// Sempre que o estado de login mudar, guardamos o usuário
+auth.onAuthStateChanged(user => {
+  usuarioAtual = user;
+  // Não fazemos nada automático aqui
+  // O usuário só vai entrar nas áreas internas depois de clicar em "Entrar"
 });
+
 
 /**************** UI ****************/
 function mostrar(id){
