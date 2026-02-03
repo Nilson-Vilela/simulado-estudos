@@ -33,7 +33,7 @@
 </section>
 
 <!-- LOGIN -->
-<section id="login" class="flex items-center justify-center min-h-screen">
+<section id="login" class="hidden class="flex items-center justify-center min-h-screen">
 <div class="bg-white p-6 rounded-xl shadow w-full max-w-md">
 <h2 class="text-2xl font-bold text-center mb-4">Login</h2>
 
@@ -160,14 +160,15 @@ auth.onAuthStateChanged(user=>{
 });
 
 /**************** UI ****************/
-
 function mostrar(id){
-  ['login','aluno','admin'].forEach(s=>{
+
+  ['home','login','aluno','admin'].forEach(s=>{
     document.getElementById(s).classList.add('hidden');
   });
 
   document.getElementById(id).classList.remove('hidden');
 }
+
 
 /**************** PROFESSOR ****************/
 function salvarQuestao(){
@@ -196,23 +197,6 @@ function salvarQuestao(){
   opD.value="";
 }
 
-
-function novaQuestao(){
-
-  const p = prompt('Pergunta:');
-  if(!p) return;
-
-  const a = prompt('A:');
-  const b = prompt('B:');
-  const c = prompt('C:');
-  const d = prompt('D:');
-  const r = prompt('Correta (A/B/C/D):');
-
-  db.collection('questoes').add({
-    pergunta:p,a,b,c,d,correta:r
-  });
-
-}
 
 function carregarQuestoes(){
 
