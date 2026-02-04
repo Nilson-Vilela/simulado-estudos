@@ -170,8 +170,25 @@ function loginGoogle(){
 }
 
 function logout(){
-  auth.signOut();
+
+  auth.signOut()
+    .then(()=>{
+
+      mostrar('home');
+
+      // Limpa campos
+      if(document.getElementById('email')) email.value="";
+      if(document.getElementById('senha')) senha.value="";
+
+      alert("Você saiu do sistema.");
+
+    })
+    .catch((erro)=>{
+      alert("Erro ao sair: " + erro.message);
+    });
+
 }
+
 
 let usuarioAtual = null;
 
