@@ -196,28 +196,58 @@ function mostrar(id){
 /**************** PROFESSOR ****************/
 function salvarQuestao(){
 
-  if(!perg.value || !opA.value || !opB.value ||
-     !opC.value || !opD.value){
-    alert("Preencha tudo");
+  // Verifica login
+  const user = auth.currentUser;
+
+  if(!user){
+    alert("Você precisa estar logado!");
+    mostrar('login');
     return;
   }
 
+  // Validação
+  if(
+    !perg.value ||
+    !opA.value ||
+    !opB.value ||
+    !opC.value ||
+    !opD.value
+  ){
+    alert("Preencha todos os campos!");
+    return;
+  }
+
+  // Salvar no Firebase
   db.collection('questoes').add({
 
-    pergunta: perg.value,
-    a: opA.value,
-    b: opB.value,
-    c: opC.value,
-    d: opD.value,
-    correta: resp.value
+    pergunta: perg.value.trim(),
+    a: opA.value.trim(),
+    b: opB.value.trim(),
+    c: opC.value.trim(),
+    d: opD.value.trim(),
+    correta: resp.value,
+    criadoEm: new Date(),
+    autor: user.email
+
+  })
+  .then(()=>{
+
+    alert("✅ Questão salva com sucesso!");
+
+    // Limpar formulário
+    perg.value="";
+    opA.value="";
+    opB.value="";
+    opC.value="";
+    opD.value="";
+
+  })
+  .catch((erro)=>{
+
+    console.error(erro);
+    alert("❌ Erro ao salvar: " + erro.message);
 
   });
-
-  perg.value="";
-  opA.value="";
-  opB.value="";
-  opC.value="";
-  opD.value="";
 }
 
 
