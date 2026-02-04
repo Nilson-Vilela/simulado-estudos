@@ -196,7 +196,6 @@ function mostrar(id){
 /**************** PROFESSOR ****************/
 function salvarQuestao(){
 
-  // Verifica login
   const user = auth.currentUser;
 
   if(!user){
@@ -205,19 +204,23 @@ function salvarQuestao(){
     return;
   }
 
+  // Pega o select corretamente
+  const selectResp = document.getElementById('resp');
+  const resposta = selectResp.value;
+
   // Validação
   if(
     !perg.value ||
     !opA.value ||
     !opB.value ||
     !opC.value ||
-    !opD.value
+    !opD.value ||
+    !resposta
   ){
     alert("Preencha todos os campos!");
     return;
   }
 
-  // Salvar no Firebase
   db.collection('questoes').add({
 
     pergunta: perg.value.trim(),
@@ -225,7 +228,7 @@ function salvarQuestao(){
     b: opB.value.trim(),
     c: opC.value.trim(),
     d: opD.value.trim(),
-    correta: resp.value,
+    correta: resposta, // agora garantido
     criadoEm: new Date(),
     autor: user.email
 
@@ -234,12 +237,12 @@ function salvarQuestao(){
 
     alert("✅ Questão salva com sucesso!");
 
-    // Limpar formulário
     perg.value="";
     opA.value="";
     opB.value="";
     opC.value="";
     opD.value="";
+    selectResp.value="A";
 
   })
   .catch((erro)=>{
