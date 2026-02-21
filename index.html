@@ -239,7 +239,6 @@ function salvarQuestao(){
     return;
   }
 
-  // Pegando elementos corretamente
   const disciplina = document.getElementById('disciplina').value;
   const pergunta = document.getElementById('perg').value.trim();
   const alternativaA = document.getElementById('opA').value.trim();
@@ -248,7 +247,6 @@ function salvarQuestao(){
   const alternativaD = document.getElementById('opD').value.trim();
   const resposta = document.getElementById('resp').value;
 
-  // Validação
   if(
     !disciplina ||
     !pergunta ||
@@ -262,68 +260,52 @@ function salvarQuestao(){
     return;
   }
 
- if(questaoEditandoId){
+  if(questaoEditandoId){
 
-  db.collection('questoes').doc(questaoEditandoId).update({
-    disciplina,
-    pergunta,
-    a: alternativaA,
-    b: alternativaB,
-    c: alternativaC,
-    d: alternativaD,
-    correta: resposta
-  })
-  .then(()=>{
-    alert("✅ Questão atualizada!");
+    db.collection('questoes').doc(questaoEditandoId).update({
+      disciplina,
+      pergunta,
+      a: alternativaA,
+      b: alternativaB,
+      c: alternativaC,
+      d: alternativaD,
+      correta: resposta
+    })
+    .then(()=>{
+      alert("✅ Questão atualizada!");
+      questaoEditandoId = null;
 
-    questaoEditandoId = null;
+      document.querySelector("button[onclick='salvarQuestao()']")
+        .innerText = "Salvar Questão";
 
-    document.querySelector("button[onclick='salvarQuestao()']")
-      .innerText = "Salvar Questão";
+      limparFormulario();
+    })
+    .catch((erro)=>{
+      alert("Erro ao atualizar: " + erro.message);
+    });
 
-    limparFormulario();
-  });
+  }else{
 
-}else{
+    db.collection('questoes').add({
+      disciplina,
+      pergunta,
+      a: alternativaA,
+      b: alternativaB,
+      c: alternativaC,
+      d: alternativaD,
+      correta: resposta,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      autor: user.email
+    })
+    .then(()=>{
+      alert("✅ Questão salva com sucesso!");
+      limparFormulario();
+    })
+    .catch((erro)=>{
+      alert("Erro ao salvar: " + erro.message);
+    });
 
-  db.collection('questoes').add({
-    disciplina,
-    pergunta,
-    a: alternativaA,
-    b: alternativaB,
-    c: alternativaC,
-    d: alternativaD,
-    correta: resposta,
-    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
-    autor: user.email
-  })
-  .then(()=>{
-    alert("✅ Questão salva!");
-    limparFormulario();
-  });
-
-}
-
-  .then(()=>{
-
-    alert("✅ Questão salva com sucesso!");
-
-    // Limpar campos
-    document.getElementById('disciplina').value="";
-    document.getElementById('perg').value="";
-    document.getElementById('opA').value="";
-    document.getElementById('opB').value="";
-    document.getElementById('opC').value="";
-    document.getElementById('opD').value="";
-    document.getElementById('resp').value="A";
-
-  })
-  .catch((erro)=>{
-
-    console.error(erro);
-    alert("❌ Erro ao salvar: " + erro.message);
-
-  });
+  }
 }
 
 function carregarQuestoes(){
