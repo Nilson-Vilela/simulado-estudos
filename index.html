@@ -66,7 +66,17 @@ style="background-image:url('https://images.unsplash.com/photo-1523240795612-9a0
 <h2 class="text-2xl font-bold mb-4">Área do Aluno</h2>
 
 <div class="space-y-3">
-<button onclick="iniciarSimulado()" class="btn">📘 Fazer Simulado</button>
+<select id="disciplinaAluno" class="w-full border p-2 rounded mb-2">
+  <option value="Matemática">Matemática</option>
+  <option value="Português">Português</option>
+  <option value="História">História</option>
+  <option value="Geografia">Geografia</option>
+  <option value="Ciências">Ciências</option>
+</select>
+
+<button onclick="iniciarSimulado()" class="btn bg-blue-600 text-white">
+  🎯 Iniciar Simulado
+</button>
 <button onclick="historico()" class="btn">📊 Histórico</button>
 <button onclick="ranking()" class="btn">🏆 Ranking</button>
 <button onclick="logout()" class="btn bg-red-500 text-white">Sair</button>
@@ -82,6 +92,14 @@ style="background-image:url('https://images.unsplash.com/photo-1523240795612-9a0
 <h2 class="text-2xl font-bold mb-4">Painel do Professor</h2>
 
 <div class="bg-white p-4 rounded-xl shadow mb-4 space-y-2">
+<select id="disciplina" class="w-full border p-2 rounded">
+  <option value="">Selecione a disciplina</option>
+  <option value="Matemática">Matemática</option>
+  <option value="Português">Português</option>
+  <option value="História">História</option>
+  <option value="Geografia">Geografia</option>
+  <option value="Ciências">Ciências</option>
+</select>
 
 <input id="perg" class="w-full border p-2 rounded" placeholder="Pergunta">
 
@@ -221,17 +239,23 @@ function salvarQuestao(){
     return;
   }
 
-  // Pega o select corretamente
-  const selectResp = document.getElementById('resp');
-  const resposta = selectResp.value;
+  // Pegando elementos corretamente
+  const disciplina = document.getElementById('disciplina').value;
+  const pergunta = document.getElementById('perg').value.trim();
+  const alternativaA = document.getElementById('opA').value.trim();
+  const alternativaB = document.getElementById('opB').value.trim();
+  const alternativaC = document.getElementById('opC').value.trim();
+  const alternativaD = document.getElementById('opD').value.trim();
+  const resposta = document.getElementById('resp').value;
 
   // Validação
   if(
-    !perg.value ||
-    !opA.value ||
-    !opB.value ||
-    !opC.value ||
-    !opD.value ||
+    !disciplina ||
+    !pergunta ||
+    !alternativaA ||
+    !alternativaB ||
+    !alternativaC ||
+    !alternativaD ||
     !resposta
   ){
     alert("Preencha todos os campos!");
@@ -240,13 +264,14 @@ function salvarQuestao(){
 
   db.collection('questoes').add({
 
-    pergunta: perg.value.trim(),
-    a: opA.value.trim(),
-    b: opB.value.trim(),
-    c: opC.value.trim(),
-    d: opD.value.trim(),
-    correta: resposta, // agora garantido
-    criadoEm: new Date(),
+    disciplina: disciplina,
+    pergunta: pergunta,
+    a: alternativaA,
+    b: alternativaB,
+    c: alternativaC,
+    d: alternativaD,
+    correta: resposta,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
     autor: user.email
 
   })
@@ -254,12 +279,14 @@ function salvarQuestao(){
 
     alert("✅ Questão salva com sucesso!");
 
-    perg.value="";
-    opA.value="";
-    opB.value="";
-    opC.value="";
-    opD.value="";
-    selectResp.value="A";
+    // Limpar campos
+    document.getElementById('disciplina').value="";
+    document.getElementById('perg').value="";
+    document.getElementById('opA').value="";
+    document.getElementById('opB').value="";
+    document.getElementById('opC').value="";
+    document.getElementById('opD').value="";
+    document.getElementById('resp').value="A";
 
   })
   .catch((erro)=>{
@@ -269,7 +296,6 @@ function salvarQuestao(){
 
   });
 }
-
 
 function carregarQuestoes(){
 
@@ -335,7 +361,12 @@ let pontos=0;
 
 function iniciarSimulado(){
 
-  db.collection('questoes').get().then(s=>{
+  const disciplinaEscolhida = document.getElementById('disciplinaAluno').value;
+
+  db.collection('questoes')
+  .where('disciplina','==',disciplinaEscolhida)
+  .get()
+  .then(s=>{
 
     questoes=[];
 
@@ -352,20 +383,34 @@ function mostrarQuestao(){
 
   if(atual>=questoes.length){
     salvarHistorico();
-    conteudoAluno.innerHTML=`<h3 class='text-xl'>Resultado: ${pontos}/${questoes.length}</h3>`;
+    conteudoAluno.innerHTML=`
+      <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6 rounded-xl text-center text-black shadow-xl">
+        <h2 class="text-3xl font-bold">🏆 Resultado Final</h2>
+        <p class="text-2xl mt-3">${pontos} / ${questoes.length}</p>
+      </div>`;
     return;
   }
 
   const q=questoes[atual];
 
   conteudoAluno.innerHTML=`
-  <div class="bg-white p-4 rounded shadow">
-    <h3 class="font-bold mb-2">${q.pergunta}</h3>
+  <div class="bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 p-6 rounded-2xl shadow-2xl text-white">
 
-    <button class="btn" onclick="resp('A')">A) ${q.a}</button>
-    <button class="btn" onclick="resp('B')">B) ${q.b}</button>
-    <button class="btn" onclick="resp('C')">C) ${q.c}</button>
-    <button class="btn" onclick="resp('D')">D) ${q.d}</button>
+    <div class="text-center text-yellow-400 text-xl font-bold mb-4">
+      Pergunta ${atual+1}
+    </div>
+
+    <div class="bg-black/60 p-4 rounded-xl mb-5 text-lg font-semibold">
+      ${q.pergunta}
+    </div>
+
+    <div class="grid gap-3">
+      <button class="opcao" onclick="resp('A')">A) ${q.a}</button>
+      <button class="opcao" onclick="resp('B')">B) ${q.b}</button>
+      <button class="opcao" onclick="resp('C')">C) ${q.c}</button>
+      <button class="opcao" onclick="resp('D')">D) ${q.d}</button>
+    </div>
+
   </div>`;
 }
 
@@ -441,6 +486,24 @@ window.onload = function(){
   padding:8px;
   border-radius:8px;
   margin-bottom:6px;
+}
+
+
+.opcao{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  font-weight:bold;
+  background:linear-gradient(45deg,#1e3a8a,#2563eb);
+  color:white;
+  transition:0.3s;
+  border:none;
+}
+
+.opcao:hover{
+  background:linear-gradient(45deg,#facc15,#f59e0b);
+  color:black;
+  transform:scale(1.03);
 }
 
 
