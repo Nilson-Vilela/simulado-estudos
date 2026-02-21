@@ -262,10 +262,33 @@ function salvarQuestao(){
     return;
   }
 
-  db.collection('questoes').add({
+ if(questaoEditandoId){
 
-    disciplina: disciplina,
-    pergunta: pergunta,
+  db.collection('questoes').doc(questaoEditandoId).update({
+    disciplina,
+    pergunta,
+    a: alternativaA,
+    b: alternativaB,
+    c: alternativaC,
+    d: alternativaD,
+    correta: resposta
+  })
+  .then(()=>{
+    alert("✅ Questão atualizada!");
+
+    questaoEditandoId = null;
+
+    document.querySelector("button[onclick='salvarQuestao()']")
+      .innerText = "Salvar Questão";
+
+    limparFormulario();
+  });
+
+}else{
+
+  db.collection('questoes').add({
+    disciplina,
+    pergunta,
     a: alternativaA,
     b: alternativaB,
     c: alternativaC,
@@ -273,8 +296,14 @@ function salvarQuestao(){
     correta: resposta,
     criadoEm: firebase.firestore.FieldValue.serverTimestamp(),
     autor: user.email
-
   })
+  .then(()=>{
+    alert("✅ Questão salva!");
+    limparFormulario();
+  });
+
+}
+
   .then(()=>{
 
     alert("✅ Questão salva com sucesso!");
@@ -334,22 +363,30 @@ function excluir(id){
   }
 }
 
+
+
+let questaoEditandoId = null;
+
 function editar(id){
 
-  db.collection('questoes').doc(id).get().then(d=>{
+  db.collection('questoes').doc(id).get().then(doc=>{
 
-    const q=d.data();
+    const q = doc.data();
 
-    const p=prompt('Pergunta',q.pergunta);
-    const a=prompt('A',q.a);
-    const b=prompt('B',q.b);
-    const c=prompt('C',q.c);
-    const d1=prompt('D',q.d);
-    const r=prompt('Correta',q.correta);
+    document.getElementById('disciplina').value = q.disciplina || "";
+    document.getElementById('perg').value = q.pergunta;
+    document.getElementById('opA').value = q.a;
+    document.getElementById('opB').value = q.b;
+    document.getElementById('opC').value = q.c;
+    document.getElementById('opD').value = q.d;
+    document.getElementById('resp').value = q.correta;
 
-    db.collection('questoes').doc(id).update({
-      pergunta:p,a,b,c,d:d1,correta:r
-    });
+    questaoEditandoId = id;
+
+    // Troca texto do botão
+    document.querySelector("button[onclick='salvarQuestao()']")
+      .innerText = "Atualizar Questão";
+
   });
 }
 
@@ -476,6 +513,16 @@ function ranking(){
 window.onload = function(){
   mostrar('home');
 };
+
+function limparFormulario(){
+  document.getElementById('disciplina').value="";
+  document.getElementById('perg').value="";
+  document.getElementById('opA').value="";
+  document.getElementById('opB').value="";
+  document.getElementById('opC').value="";
+  document.getElementById('opD').value="";
+  document.getElementById('resp').value="A";
+}
 
 </script>
 
